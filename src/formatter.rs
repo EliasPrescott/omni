@@ -11,9 +11,12 @@ impl OmniType {
             },
             OmniType::Symbol(symbol) => symbol.to_owned(),
             OmniType::Quote(inner) => format!("'{}", inner.format_min()),
-            OmniType::QuasiQuote(_items) => panic!("Trying to format a quasi-quote. This may be valid, but for now I want to panic and see where it's happening from."),
-            OmniType::UnQuote(_item) => panic!("Trying to format an un-quote. This may be valid, but for now I want to panic and see where it's happening from."),
-            OmniType::Spread(_item) => panic!("Trying to format a spread. This may be valid, but for now I want to panic and see where it's happening from."),
+            OmniType::QuasiQuote(items) => {
+                let formatted_items: Vec<String> = items.into_iter().map(|x| x.format_min()).collect();
+                format!("`{}", formatted_items.join(" "))
+            },
+            OmniType::UnQuote(item) => format!(",{}", item.format_min()),
+            OmniType::Spread(item) => format!(",@{}", item.format_min()),
         }
     }
 }
