@@ -134,6 +134,29 @@ impl OmniType {
                         let environment = environment.add_bindings(bindings);
                         (expr.0, Rc::new(environment))
                     }
+
+                    OmniType::Symbol(builtin_symbol) if builtin_symbol == "first" => {
+                        let x = items.get(1).unwrap().eval(environment.clone(), registry).0.unwrap_as_list();
+                        let first = x.get(0).unwrap().clone();
+                        (first, environment)
+                    }
+                    OmniType::Symbol(builtin_symbol) if builtin_symbol == "last" => {
+                        let x = items.get(1).unwrap().eval(environment.clone(), registry).0.unwrap_as_list();
+                        let last = x.last().unwrap().clone();
+                        (last, environment)
+                    }
+                    OmniType::Symbol(builtin_symbol) if builtin_symbol == "nth" => {
+                        let x = items.get(1).unwrap().eval(environment.clone(), registry).0.unwrap_as_list();
+                        let y = items.get(2).unwrap().eval(environment.clone(), registry).0.unwrap_as_int();
+                        let nth = x.get(y as usize).unwrap().clone();
+                        (nth, environment)
+                    }
+                    OmniType::Symbol(builtin_symbol) if builtin_symbol == "rest" => {
+                        let x = items.get(1).unwrap().eval(environment.clone(), registry).0.unwrap_as_list();
+                        let rest = x.into_iter().skip(1).collect::<Vec<_>>();
+                        (OmniType::List(rest), environment)
+                    }
+
                     OmniType::Symbol(builtin_symbol) if builtin_symbol == "+" => {
                         let x = items.get(1).unwrap().eval(environment.clone(), registry).0.unwrap_as_int();
                         let y = items.get(2).unwrap().eval(environment.clone(), registry).0.unwrap_as_int();
