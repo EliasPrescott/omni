@@ -7,7 +7,7 @@ use crate::interpreter::registry::FileStoreRegistry;
 use crate::parsers::parse;
 
 pub fn repl() {
-    let environment = Rc::new(OmniEnvironment::new());
+    let mut environment = Rc::new(OmniEnvironment::new());
     let registry = FileStoreRegistry::try_create(Path::new("./.omni")).unwrap();
     loop {
         let mut stdin = stdin().lock();
@@ -17,7 +17,8 @@ pub fn repl() {
         let mut input = String::new();
         stdin.read_line(&mut input).unwrap();
         let expr = parse(&input).unwrap();
-        let result = expr.eval(environment.clone(), &registry);
+        let (result, new_environment) = expr.eval(environment.clone(), &registry);
+        environment = new_environment;
         writeln!(stdout, "{}", result.format_min()).unwrap();
     }
 }

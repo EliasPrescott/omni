@@ -22,7 +22,7 @@ mod tests {
         ]);
         let environment = Rc::new(OmniEnvironment::new());
         let registry = NullRegistry;
-        let result = funcall.eval(environment, &registry);
+        let result = funcall.eval(environment, &registry).0;
         assert_eq!(result, OmniType::Int(42));
     }
 
@@ -31,7 +31,7 @@ mod tests {
         let environment = Rc::new(OmniEnvironment::new());
         let registry = NullRegistry;
         let expr = parse("((lambda (x) x) 123)").unwrap();
-        let result = expr.eval(environment, &registry);
+        let result = expr.eval(environment, &registry).0;
         assert_eq!(result, OmniType::Int(123));
     }
 
@@ -40,7 +40,7 @@ mod tests {
         let environment = Rc::new(OmniEnvironment::new());
         let registry = NullRegistry;
         let expr = parse("`(1 2 ,(+ 2 2))").unwrap();
-        let result = expr.eval(environment, &registry);
+        let result = expr.eval(environment, &registry).0;
         assert_eq!(result, OmniType::List(vec![
                 OmniType::Int(1),
                 OmniType::Int(2),
@@ -53,7 +53,7 @@ mod tests {
         let environment = Rc::new(OmniEnvironment::new());
         let registry = NullRegistry;
         let expr = parse("`(1 2 ,@'(3 4))").unwrap();
-        let result = expr.eval(environment, &registry);
+        let result = expr.eval(environment, &registry).0;
         assert_eq!(result, OmniType::List(vec![
                 OmniType::Int(1),
                 OmniType::Int(2),

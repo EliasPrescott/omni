@@ -7,6 +7,10 @@ This creates unique capabilities for versioning and distribution of the language
 
 Omni is heavily inspired by [scrapscript](https://scrapscript.org/).
 
+## Example
+
+![An example Omni REPL session](./repl.png)
+
 ## Roadmap
 
 ### Types
@@ -22,15 +26,17 @@ Omni is heavily inspired by [scrapscript](https://scrapscript.org/).
 
 ### Parsing
  - [x] Basic Parsing
+ - [ ] Whole File Parsing
  - [ ] Switching to Streaming Parsers
  - [ ] Span Location Tracking
 
 ### REPL
  - [x] Basic Functionality
 
-### Built-in Functions
+### Interpreter
  - [x] Basic Math
  - [x] `store` for Storing Expressions in the Current Registry
+ - [x] `def` for defining expressions in the current environment
 
 ### Registries
 

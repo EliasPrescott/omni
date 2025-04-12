@@ -54,18 +54,18 @@ impl OmniType {
     pub fn unquote(self: &OmniType, environment: Rc<OmniEnvironment>, registry: &dyn OmniRegistry) -> Vec<OmniType> {
         match self {
             OmniType::UnQuote(item) => {
-                vec![item.eval(environment, registry)]
+                vec![item.eval(environment, registry).0]
             }
             OmniType::Spread(item) => {
-                item.eval(environment, registry).unwrap_as_list()
+                item.eval(environment, registry).0.unwrap_as_list()
             }
             other => vec![other.clone()]
         }
     }
 
-    pub fn eval(self: &OmniType, environment: Rc<OmniEnvironment>, registry: &dyn OmniRegistry) -> OmniType {
+    pub fn eval(self: &OmniType, environment: Rc<OmniEnvironment>, registry: &dyn OmniRegistry) -> (OmniType, Rc<OmniEnvironment>) {
         match self {
-            OmniType::Quote(inner) => *inner.clone(),
+            OmniType::Quote(inner) => (*inner.clone(), environment),
             OmniType::UnQuote(item) => {
                 assert!(environment.can_unquote());
                 item.eval(environment, registry)
@@ -77,53 +77,60 @@ impl OmniType {
             OmniType::QuasiQuote(items) => {
                 let environment = Rc::new(environment.with_quasiquote());
                 let items: Vec<OmniType> = items.into_iter().flat_map(|x| x.unquote(environment.clone(), registry)).collect();
-                OmniType::List(items)
+                (OmniType::List(items), environment)
             }
-            OmniType::Int(num) => OmniType::Int(*num),
-            OmniType::Hash(hash) => registry.resolve(hash).expect(&format!("Could not resolve ${}", hash)),
+            OmniType::Int(num) => (OmniType::Int(*num), environment),
+            OmniType::Hash(hash) => (registry.resolve(hash).expect(&format!("Could not resolve ${}", hash)), environment),
             OmniType::List(items) => {
                 let first = items.first().unwrap();
                 match first {
                     OmniType::Symbol(builtin_symbol) if builtin_symbol == "store" => {
                         let x = items.get(1).unwrap().eval(environment.clone(), registry);
-                        let hash = registry.store(&x).unwrap();
-                        OmniType::Hash(hash)
+                        let hash = registry.store(&x.0).unwrap();
+                        (OmniType::Hash(hash), environment)
+                    }
+                    OmniType::Symbol(builtin_symbol) if builtin_symbol == "def" => {
+                        let name = items.get(1).unwrap().clone().unwrap_as_symbol();
+                        let expr = items.get(2).unwrap().eval(environment.clone(), registry);
+                        let bindings = vec![(name, expr.0.clone())];
+                        let environment = environment.add_bindings(bindings);
+                        (expr.0, Rc::new(environment))
                     }
                     OmniType::Symbol(builtin_symbol) if builtin_symbol == "+" => {
-                        let x = items.get(1).unwrap().eval(environment.clone(), registry).unwrap_as_int();
-                        let y = items.get(2).unwrap().eval(environment.clone(), registry).unwrap_as_int();
-                        OmniType::Int(x + y)
+                        let x = items.get(1).unwrap().eval(environment.clone(), registry).0.unwrap_as_int();
+                        let y = items.get(2).unwrap().eval(environment.clone(), registry).0.unwrap_as_int();
+                        (OmniType::Int(x + y), environment)
                     }
                     OmniType::Symbol(builtin_symbol) if builtin_symbol == "-" => {
-                        let x = items.get(1).unwrap().eval(environment.clone(), registry).unwrap_as_int();
-                        let y = items.get(2).unwrap().eval(environment.clone(), registry).unwrap_as_int();
-                        OmniType::Int(x - y)
+                        let x = items.get(1).unwrap().eval(environment.clone(), registry).0.unwrap_as_int();
+                        let y = items.get(2).unwrap().eval(environment.clone(), registry).0.unwrap_as_int();
+                        (OmniType::Int(x - y), environment)
                     }
                     OmniType::Symbol(builtin_symbol) if builtin_symbol == "*" => {
-                        let x = items.get(1).unwrap().eval(environment.clone(), registry).unwrap_as_int();
-                        let y = items.get(2).unwrap().eval(environment.clone(), registry).unwrap_as_int();
-                        OmniType::Int(x * y)
+                        let x = items.get(1).unwrap().eval(environment.clone(), registry).0.unwrap_as_int();
+                        let y = items.get(2).unwrap().eval(environment.clone(), registry).0.unwrap_as_int();
+                        (OmniType::Int(x * y), environment)
                     }
                     OmniType::Symbol(builtin_symbol) if builtin_symbol == "/" => {
-                        let x = items.get(1).unwrap().eval(environment.clone(), registry).unwrap_as_int();
-                        let y = items.get(2).unwrap().eval(environment.clone(), registry).unwrap_as_int();
-                        OmniType::Int(x / y)
+                        let x = items.get(1).unwrap().eval(environment.clone(), registry).0.unwrap_as_int();
+                        let y = items.get(2).unwrap().eval(environment.clone(), registry).0.unwrap_as_int();
+                        (OmniType::Int(x / y), environment)
                     }
                     OmniType::Hash(hash) => {
                         let lambda_details = registry.resolve(hash).unwrap().unwrap_as_lambda();
                         let arg_exprs = &items[1..];
                         assert_eq!(arg_exprs.len(), lambda_details.args.len());
-                        let arg_exprs: Vec<OmniType> = arg_exprs.into_iter().map(|x| x.eval(environment.clone(), registry)).collect();
+                        let arg_exprs: Vec<OmniType> = arg_exprs.into_iter().map(|x| x.eval(environment.clone(), registry).0).collect();
                         let new_bindings: Vec<(String, OmniType)> = lambda_details.args.clone().into_iter().zip(arg_exprs).collect();
                         let new_env = Rc::new(OmniEnvironment::add_bindings(environment, new_bindings));
                         lambda_details.body.eval(new_env, registry)
                     }
                     OmniType::Symbol(_) => {
                         let first = first.eval(environment.clone(), registry);
-                        let lambda_details = first.unwrap_as_lambda();
+                        let lambda_details = first.0.unwrap_as_lambda();
                         let arg_exprs = &items[1..];
                         assert_eq!(arg_exprs.len(), lambda_details.args.len());
-                        let arg_exprs: Vec<OmniType> = arg_exprs.into_iter().map(|x| x.eval(environment.clone(), registry)).collect();
+                        let arg_exprs: Vec<OmniType> = arg_exprs.into_iter().map(|x| x.eval(environment.clone(), registry).0).collect();
                         let new_bindings: Vec<(String, OmniType)> = lambda_details.args.clone().into_iter().zip(arg_exprs).collect();
                         let new_env = Rc::new(OmniEnvironment::add_bindings(environment, new_bindings));
                         lambda_details.body.eval(new_env, registry)
@@ -133,7 +140,7 @@ impl OmniType {
                         let lambda_details = first.clone().unwrap_as_lambda();
                         let arg_exprs = &items[1..];
                         assert_eq!(arg_exprs.len(), lambda_details.args.len());
-                        let arg_exprs: Vec<OmniType> = arg_exprs.into_iter().map(|x| x.eval(environment.clone(), registry)).collect();
+                        let arg_exprs: Vec<OmniType> = arg_exprs.into_iter().map(|x| x.eval(environment.clone(), registry).0).collect();
                         let new_bindings: Vec<(String, OmniType)> = lambda_details.args.clone().into_iter().zip(arg_exprs).collect();
                         let new_env = Rc::new(OmniEnvironment::add_bindings(environment, new_bindings));
                         lambda_details.body.eval(new_env, registry)
@@ -144,7 +151,7 @@ impl OmniType {
             OmniType::Symbol(symbol) => {
                 match environment.get(symbol) {
                     None => panic!("Could not evaluate symbol {}", symbol),
-                    Some(expr) => expr.clone(),
+                    Some(expr) => (expr.clone(), environment),
                 }
             },
         }
