@@ -40,7 +40,7 @@ Omni is heavily inspired by [scrapscript](https://scrapscript.org/).
 
 ### Registries
 
-A Registry is a schema for storing and retrieving expressions based on hashes. 
+A Registry is a scheme for storing and retrieving expressions based on hashes. 
 
 Using SHA256 hashes provides interesting security features to ensure that a remote registry has not modified the expression.
 Most registries (`HttpRegistry` and `FileStoreRegistry`) will verify the hash of retrieved expressions to ensure they have not been tampered with.
