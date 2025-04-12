@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use crate::core_types::OmniType;
 use crate::interpreter::environment::OmniEnvironment;
-use crate::interpreter::registry::OmniRegistry;
+use crate::registry::OmniRegistry;
 
 impl OmniType {
     pub fn format_min(self: &Self) -> String {
@@ -36,7 +36,7 @@ impl OmniType {
             OmniType::Symbol(symbol) => {
                 match environment.get(symbol) {
                     Some(expr) => {
-                        let hash = registry.store(expr, environment.clone()).unwrap();
+                        let hash = registry.store(&expr, environment.clone()).unwrap();
                         OmniType::Hash(hash).resolving_format_min(environment.clone(), registry)
                     }
                     // If we can't resolve the symbol, just leave it alone for now.
@@ -47,14 +47,21 @@ impl OmniType {
                     }
                 }
             },
-            OmniType::Quote(inner) => format!("'{}", inner.resolving_format_min(environment.clone(), registry)),
+            OmniType::Quote(inner) => format!("'{}", inner.format_min()),
             OmniType::QuasiQuote(items) => {
+                let environment = Rc::new(environment.with_format_quasiquote());
                 let formatted_items: Vec<String> = items.into_iter()
                     .map(|x| x.resolving_format_min(environment.clone(), registry)).collect();
                 format!("`{}", formatted_items.join(" "))
             },
-            OmniType::UnQuote(item) => format!(",{}", item.resolving_format_min(environment.clone(), registry)),
-            OmniType::Spread(item) => format!(",@{}", item.resolving_format_min(environment.clone(), registry)),
+            OmniType::UnQuote(item) => {
+                assert!(environment.can_format_unquote());
+                format!(",{}", item.resolving_format_min(environment.clone(), registry))
+            },
+            OmniType::Spread(item) => {
+                assert!(environment.can_format_unquote());
+                format!(",@{}", item.resolving_format_min(environment.clone(), registry))
+            },
         }
     }
 }

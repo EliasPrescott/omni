@@ -3,8 +3,8 @@ use std::path::Path;
 use std::rc::Rc;
 
 use crate::interpreter::environment::OmniEnvironment;
-use crate::interpreter::registry::FileStoreRegistry;
 use crate::parsers::parse;
+use crate::registry::file_store_registry::FileStoreRegistry;
 
 pub fn repl() {
     let mut environment = Rc::new(OmniEnvironment::new());

@@ -4,8 +4,8 @@ mod tests {
 
     use crate::core_types::OmniType;
     use crate::interpreter::environment::OmniEnvironment;
-    use crate::interpreter::registry::NullRegistry;
     use crate::parsers::parse;
+    use crate::registry::null_registry::NullRegistry;
 
     #[test]
     fn eval_lambda() {

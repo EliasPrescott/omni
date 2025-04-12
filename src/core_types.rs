@@ -4,7 +4,7 @@ use nom::AsBytes;
 use sha2::Digest;
 
 use crate::interpreter::environment::OmniEnvironment;
-use crate::interpreter::registry::OmniRegistry;
+use crate::registry::OmniRegistry;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum OmniType {

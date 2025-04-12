@@ -3,26 +3,10 @@ use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 use crate::core_types::OmniType;
+use crate::interpreter::environment::OmniEnvironment;
 use crate::parsers::parse;
 
-use super::environment::OmniEnvironment;
-
-pub trait OmniRegistry {
-    fn resolve(&self, hash: &String) -> Option<OmniType>;
-    fn store(&self, expr: &OmniType, environment: Rc<OmniEnvironment>) -> Result<String, String>;
-}
-
-pub struct NullRegistry;
-
-impl OmniRegistry for NullRegistry {
-    fn resolve(&self, _hash: &String) -> Option<OmniType> {
-        None
-    }
-
-    fn store(&self, _expr: &OmniType, _: Rc<OmniEnvironment>) -> Result<String, String> {
-        Err(String::from("Cannot store expressions in the null registry"))
-    }
-}
+use super::OmniRegistry;
 
 pub struct FileStoreRegistry {
     directory_path: PathBuf,
