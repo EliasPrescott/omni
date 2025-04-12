@@ -13,6 +13,7 @@ impl OmniType {
             OmniType::Quote(inner) => format!("'{}", inner.format_min()),
             OmniType::QuasiQuote(_items) => panic!("Trying to format a quasi-quote. This may be valid, but for now I want to panic and see where it's happening from."),
             OmniType::UnQuote(_item) => panic!("Trying to format an un-quote. This may be valid, but for now I want to panic and see where it's happening from."),
+            OmniType::Spread(_item) => panic!("Trying to format a spread. This may be valid, but for now I want to panic and see where it's happening from."),
         }
     }
 }

@@ -47,4 +47,18 @@ mod tests {
                 OmniType::Int(4),
         ]));
     }
+
+    #[test]
+    fn eval_quasiquote_spread() {
+        let environment = Rc::new(OmniEnvironment::new());
+        let registry = NullRegistry;
+        let expr = parse("`(1 2 ,@'(3 4))").unwrap();
+        let result = expr.eval(environment, &registry);
+        assert_eq!(result, OmniType::List(vec![
+                OmniType::Int(1),
+                OmniType::Int(2),
+                OmniType::Int(3),
+                OmniType::Int(4),
+        ]));
+    }
 }

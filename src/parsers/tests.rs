@@ -49,6 +49,12 @@ mod tests {
     }
 
     #[test]
+    fn parse_spread() {
+        let (_, result) = parse_omni_expr(",@lambda").unwrap();
+        assert_eq!(result, OmniType::Spread(Box::new(OmniType::Symbol(String::from("lambda")))));
+    }
+
+    #[test]
     fn parse_quasiquote() {
         let (_, result) = parse_omni_expr("`(lambda (x) ,y)").unwrap();
         assert_eq!(result, OmniType::QuasiQuote(vec![

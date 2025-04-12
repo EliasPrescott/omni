@@ -10,6 +10,7 @@ pub enum OmniType {
     Quote(Box<OmniType>),
     QuasiQuote(Vec<OmniType>),
     UnQuote(Box<OmniType>),
+    Spread(Box<OmniType>),
 }
 
 impl OmniType {

@@ -1,5 +1,5 @@
 use nom::branch::alt;
-use nom::combinator::map;
+use nom::combinator::{map, opt};
 use nom::sequence::delimited;
 use nom::{self, IResult, Parser};
 use nom::character::complete::{char, one_of};
@@ -41,8 +41,13 @@ fn parse_quote(input: &str) -> IResult<&str, OmniType> {
 
 fn parse_unquote(input: &str) -> IResult<&str, OmniType> {
     let (input, _) = char(',')(input)?;
+    let (input, spread_char) = opt(char('@')).parse(input)?;
     let (input, expr) = parse_omni_expr(input)?;
-    Ok((input, OmniType::UnQuote(Box::new(expr))))
+    if spread_char.is_some() {
+        Ok((input, OmniType::Spread(Box::new(expr))))
+    } else {
+        Ok((input, OmniType::UnQuote(Box::new(expr))))
+    }
 }
 
 fn parse_quasiquote(input: &str) -> IResult<&str, OmniType> {

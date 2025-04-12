@@ -51,12 +51,15 @@ impl OmniType {
         }
     }
 
-    pub fn unquote(self: &OmniType, environment: Rc<OmniEnvironment>, registry: &dyn OmniRegistry) -> OmniType {
+    pub fn unquote(self: &OmniType, environment: Rc<OmniEnvironment>, registry: &dyn OmniRegistry) -> Vec<OmniType> {
         match self {
             OmniType::UnQuote(item) => {
-                item.eval(environment, registry)
+                vec![item.eval(environment, registry)]
             }
-            other => other.clone()
+            OmniType::Spread(item) => {
+                item.eval(environment, registry).unwrap_as_list()
+            }
+            other => vec![other.clone()]
         }
     }
 
@@ -67,9 +70,13 @@ impl OmniType {
                 assert!(environment.can_unquote());
                 item.eval(environment, registry)
             }
+            OmniType::Spread(item) => {
+                assert!(environment.can_unquote());
+                item.eval(environment, registry)
+            }
             OmniType::QuasiQuote(items) => {
                 let environment = Rc::new(environment.with_quasiquote());
-                let items: Vec<OmniType> = items.into_iter().map(|x| x.unquote(environment.clone(), registry)).collect();
+                let items: Vec<OmniType> = items.into_iter().flat_map(|x| x.unquote(environment.clone(), registry)).collect();
                 OmniType::List(items)
             }
             OmniType::Int(num) => OmniType::Int(*num),

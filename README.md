@@ -15,7 +15,8 @@ Omni is heavily inspired by [scrapscript](https://scrapscript.org/).
  - [x] Hash (e.g. `$0ef324...`)
  - [x] List
  - [x] Quote (e.g. `'42`)
- - [x] Quasi-Quote (e.g. `` `(lambda (x) ,y) ``)
+ - [x] Quasi-Quote (e.g. `` `(1 2 ,(+ 2 2)) ``)
+ - [x] Spread (e.g. `` `(1 2 ,@'(3 4)) ``)
  - [ ] String
  - [ ] Other Types TBD...
 
