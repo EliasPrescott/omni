@@ -8,6 +8,8 @@ pub enum OmniType {
     Hash(String),
     Symbol(String),
     Quote(Box<OmniType>),
+    QuasiQuote(Vec<OmniType>),
+    UnQuote(Box<OmniType>),
 }
 
 impl OmniType {

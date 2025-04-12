@@ -15,7 +15,7 @@ Omni is heavily inspired by [scrapscript](https://scrapscript.org/).
  - [x] Hash (e.g. `$0ef324...`)
  - [x] List
  - [x] Quote (e.g. `'42`)
- - [ ] Quasi-Quote (e.g. `` `(lambda (x) ,y) ``)
+ - [x] Quasi-Quote (e.g. `` `(lambda (x) ,y) ``)
  - [ ] String
  - [ ] Other Types TBD...
 
@@ -37,7 +37,7 @@ A Registry is a schema for storing and retrieving expressions based on hashes.
 
 Using SHA256 hashes provides interesting security features to ensure that a remote registry has not modified the expression.
 Most registries (`HttpRegistry` and `FileStoreRegistry`) will verify the hash of retrieved expressions to ensure they have not been tampered with.
-For performance sake, `CachedRegistry` will likely trust its local cache directory and not performe extra hashing.
+For performance sake, `CachedRegistry` will likely trust its local cache directory and not perform extra hashing.
 
  - [x] `NullRegistry` for testing
  - [x] `FileStoreRegistry` for testing

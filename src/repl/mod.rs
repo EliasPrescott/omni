@@ -3,7 +3,7 @@ use std::path::Path;
 use std::rc::Rc;
 
 use crate::interpreter::environment::OmniEnvironment;
-use crate::interpreter::registry::{FileStoreRegistry, NullRegistry};
+use crate::interpreter::registry::FileStoreRegistry;
 use crate::parsers::parse;
 
 pub fn repl() {

@@ -51,15 +51,27 @@ impl OmniType {
         }
     }
 
-    fn symbol_is_builtin(symbol: &str) -> bool {
-        vec![
-            "lambda"
-        ].contains(&symbol)
+    pub fn unquote(self: &OmniType, environment: Rc<OmniEnvironment>, registry: &dyn OmniRegistry) -> OmniType {
+        match self {
+            OmniType::UnQuote(item) => {
+                item.eval(environment, registry)
+            }
+            other => other.clone()
+        }
     }
 
     pub fn eval(self: &OmniType, environment: Rc<OmniEnvironment>, registry: &dyn OmniRegistry) -> OmniType {
         match self {
             OmniType::Quote(inner) => *inner.clone(),
+            OmniType::UnQuote(item) => {
+                assert!(environment.can_unquote());
+                item.eval(environment, registry)
+            }
+            OmniType::QuasiQuote(items) => {
+                let environment = Rc::new(environment.with_quasiquote());
+                let items: Vec<OmniType> = items.into_iter().map(|x| x.unquote(environment.clone(), registry)).collect();
+                OmniType::List(items)
+            }
             OmniType::Int(num) => OmniType::Int(*num),
             OmniType::Hash(hash) => registry.resolve(hash).expect(&format!("Could not resolve ${}", hash)),
             OmniType::List(items) => {

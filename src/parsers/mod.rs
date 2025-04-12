@@ -39,12 +39,26 @@ fn parse_quote(input: &str) -> IResult<&str, OmniType> {
     Ok((input, OmniType::Quote(Box::new(expr))))
 }
 
+fn parse_unquote(input: &str) -> IResult<&str, OmniType> {
+    let (input, _) = char(',')(input)?;
+    let (input, expr) = parse_omni_expr(input)?;
+    Ok((input, OmniType::UnQuote(Box::new(expr))))
+}
+
+fn parse_quasiquote(input: &str) -> IResult<&str, OmniType> {
+    let (input, _) = char('`')(input)?;
+    let (input, res) = delimited(char('('), nom::multi::separated_list0(nom::character::complete::multispace0, parse_omni_expr), char(')')).parse(input)?;
+    Ok((input, OmniType::QuasiQuote(res)))
+}
+
 pub fn parse_omni_expr(input: &str) -> IResult<&str, OmniType> {
     nom::branch::alt((
         parse_hash,
         parse_int,
         parse_list,
         parse_quote,
+        parse_quasiquote,
+        parse_unquote,
         parse_symbol,
     )).parse(input)
 }
