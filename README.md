@@ -5,6 +5,8 @@ Omni is a content-addressable Lisp that is designed to be embedded and sandboxed
 Any Omni expression can be referenced by its SHA256 hash.
 This creates unique capabilities for versioning and distribution of the language.
 
+Omni is heavily inspired by [scrapscript](https://scrapscript.org/).
+
 ## Roadmap
 
 ### Types
