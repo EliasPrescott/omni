@@ -70,10 +70,10 @@ impl OmniEnvironment {
         let resolved_bindings: Vec<OmniType> = state.into_iter()
             .map(|(key, value)| {
                 let hash = registry.store(&value, self.clone()).unwrap();
-                OmniType::List(vec![OmniType::Symbol(key), OmniType::Hash(hash)])
+                OmniType::List(vec![OmniType::Quote(Box::new(OmniType::Symbol(key))), OmniType::Hash(hash)])
             })
             .collect();
-        let resolved_state = OmniType::Quote(Box::new(OmniType::List(resolved_bindings)));
+        let resolved_state = OmniType::List(resolved_bindings);
         let store_hash = registry.store(&resolved_state, self.clone()).unwrap();
         store_hash
     }
@@ -83,7 +83,7 @@ impl OmniEnvironment {
             let bindings: Vec<OmniType> = self.all_bindings().into_iter()
                 .map(|(key, value)| OmniType::List(vec![OmniType::Symbol(key), value]))
                 .collect();
-            let expr = OmniType::Quote(Box::new(OmniType::List(bindings)));
+            let expr = OmniType::List(bindings);
             return Some(expr);
         }
 
