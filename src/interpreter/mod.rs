@@ -86,7 +86,7 @@ impl OmniType {
                 match first {
                     OmniType::Symbol(builtin_symbol) if builtin_symbol == "store" => {
                         let x = items.get(1).unwrap().eval(environment.clone(), registry);
-                        let hash = registry.store(&x.0).unwrap();
+                        let hash = registry.store(&x.0, environment.clone()).unwrap();
                         (OmniType::Hash(hash), environment)
                     }
                     OmniType::Symbol(builtin_symbol) if builtin_symbol == "def" => {

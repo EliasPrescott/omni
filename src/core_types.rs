@@ -1,5 +1,10 @@
+use std::rc::Rc;
+
 use nom::AsBytes;
 use sha2::Digest;
+
+use crate::interpreter::environment::OmniEnvironment;
+use crate::interpreter::registry::OmniRegistry;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum OmniType {
@@ -14,11 +19,11 @@ pub enum OmniType {
 }
 
 impl OmniType {
-    pub fn hash(self: &Self) -> String {
-        let min_form = self.format_min();
-        let digest = sha2::Sha256::digest(min_form);
+    pub fn hash(self: &Self, environment: Rc<OmniEnvironment>, registry: &dyn OmniRegistry) -> (String, String) {
+        let min_form = self.resolving_format_min(environment, registry);
+        let digest = sha2::Sha256::digest(&min_form);
         let mut buf = [0u8; 64];
         let str = base16ct::lower::encode_str(digest.as_bytes(), &mut buf).unwrap();
-        str.to_owned()
+        (str.to_owned(), min_form)
     }
 }

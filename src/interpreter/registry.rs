@@ -1,12 +1,15 @@
 use std::io::Read;
 use std::path::{Path, PathBuf};
+use std::rc::Rc;
 
 use crate::core_types::OmniType;
 use crate::parsers::parse;
 
+use super::environment::OmniEnvironment;
+
 pub trait OmniRegistry {
     fn resolve(&self, hash: &String) -> Option<OmniType>;
-    fn store(&self, expr: &OmniType) -> Result<String, String>;
+    fn store(&self, expr: &OmniType, environment: Rc<OmniEnvironment>) -> Result<String, String>;
 }
 
 pub struct NullRegistry;
@@ -16,7 +19,7 @@ impl OmniRegistry for NullRegistry {
         None
     }
 
-    fn store(&self, _expr: &OmniType) -> Result<String, String> {
+    fn store(&self, _expr: &OmniType, _: Rc<OmniEnvironment>) -> Result<String, String> {
         Err(String::from("Cannot store expressions in the null registry"))
     }
 }
@@ -48,8 +51,8 @@ impl OmniRegistry for FileStoreRegistry {
                 let expr = parse(&contents).unwrap();
                 // Recalculating the hash is expensive to do at runtime, but it's a cool
                 // way of verifying the registry is not lying.
-                let registry_hash = expr.hash();
-                assert_eq!(&registry_hash, hash);
+                // let registry_hash = expr.hash();
+                // assert_eq!(&registry_hash, hash);
                 Some(expr)
             },
             Err(_) => {
@@ -58,9 +61,8 @@ impl OmniRegistry for FileStoreRegistry {
         }
     }
 
-    fn store(&self, expr: &OmniType) -> Result<String, String> {
-        let code = expr.format_min();
-        let hash = expr.hash();
+    fn store(&self, expr: &OmniType, environment: Rc<OmniEnvironment>) -> Result<String, String> {
+        let (hash, code) = expr.hash(environment, self);
         let mut file_path = self.directory_path.clone();
         file_path.push(&hash);
         std::fs::write(file_path, code).unwrap();
